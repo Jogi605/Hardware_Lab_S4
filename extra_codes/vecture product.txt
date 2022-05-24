@@ -1,0 +1,170 @@
+
+
+;;;;;;;;;;;;;;VECTOR PRODUCT;;;;;;;;;;;;;;;
+
+section .text
+global _start
+_start:
+mov eax, 4
+mov ebx, 1
+mov ecx, msg1
+mov edx, len1
+int 80h
+
+loop_read1:
+mov eax, 3
+mov ebx, 0
+mov ecx, temp
+mov edx, 1
+int 80h
+cmp byte[temp], 10
+je print_msg
+sub byte[temp], 30h
+mov al, byte[n]
+mov bl, 10
+mul bl
+add al, byte[temp]
+mov byte[n], al
+jmp loop_read1
+
+print_msg:
+mov eax, 4
+mov ebx, 1
+mov ecx, msg2
+mov edx, len2
+int 80h
+
+mov byte[i], 0
+mov byte[num], 0
+mov ebx, array1
+push ebx
+
+loop_read2:
+mov eax, 3
+mov ebx, 0
+mov ecx, temp
+mov edx, 1
+int 80h
+cmp byte[temp], 10
+je iterate1
+sub byte[temp], 30h
+mov al, byte[num]
+mov bl, 10
+mul bl
+add al, byte[temp]
+mov byte[num], al
+jmp loop_read2
+
+iterate1:
+pop ebx
+mov al, byte[num]
+mov byte[ebx], al
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je next
+add ebx, 1
+push ebx
+mov byte[num], 0
+jmp loop_read2
+
+next:
+mov byte[i], 0
+mov byte[num], 0
+mov ebx, array2
+push ebx
+
+loop_read3:
+mov eax, 3
+mov ebx, 0
+mov ecx, temp
+mov edx, 1
+int 80h
+cmp byte[temp], 10
+je iterate2
+sub byte[temp], 30h
+mov al, byte[num]
+mov bl, 10
+mul bl
+add al, byte[temp]
+mov byte[num], al
+jmp loop_read3
+
+iterate2:
+pop ebx
+mov al, byte[num]
+mov byte[ebx], al
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je compute
+add ebx, 1
+push ebx
+mov byte[num], 0
+jmp loop_read3
+
+compute:
+mov byte[i], 0
+mov word[sum], 0
+mov ebx, array1
+mov ecx, array2
+
+product:
+mov al, byte[ebx]
+mov dl, byte[ecx]
+mul dl
+add word[sum], ax
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je extract
+add ebx, 1
+add ecx, 1
+jmp product
+
+extract:
+cmp word[sum], 0
+je print
+inc byte[nod]
+mov ax, word[sum]
+mov dx, 0
+mov bx, 10
+div bx
+push dx
+mov word[sum], ax
+jmp extract
+
+print:
+cmp byte[nod], 0
+je exit
+pop dx
+mov word[temp], dx
+add word[temp], 30h
+mov eax, 4
+mov ebx, 1
+mov ecx, temp
+mov edx, 1
+int 80h
+dec byte[nod]
+jmp print
+
+exit:
+mov eax, 1
+mov ebx, 0
+int 80h
+
+section .data
+msg1: db "Enter the value of n",0Ah
+len1: equ $-msg1
+msg2: db "Enter 2 n dimensional vectors",0Ah
+len2: equ $-msg2
+n: db 0
+nod: db 0
+
+section .bss
+array1: resb 100
+array2: resb 100
+i: resb 1
+num: resb 1
+temp: resb 1
+sum: resw 1

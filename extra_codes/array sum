@@ -1,0 +1,142 @@
+
+;;PROGRAM TO FIND SUM OF ARRAY;
+section .text
+	global _start
+
+takeinput:
+	mov eax, 3
+	mov ebx, 0
+	mov edx, 3
+	int 0x80
+	ret
+
+convert:
+	mov eax, 0
+	sub cl, 30h
+	sub ch, 30h
+	mov al, cl
+	mov ebx, 10
+	mul bl
+	add al, ch
+	mov ecx, eax
+	ret
+
+print:
+	mov eax, 4
+	mov ebx, 1
+	mov edx, 1
+	int 0x80
+	ret
+
+printmessage:
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, message
+	mov edx, messagelen
+	int 0x80
+	ret
+
+printout:
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, msg2
+	mov edx, msg2len
+	int 0x80
+	ret
+
+printerr:
+	mov eax, 4
+	mov ebx, 1
+	mov ecx, error
+	mov edx, errlen
+	int 0x80
+	ret
+
+_start:
+
+	bgn:
+	call printmessage
+	
+	mov ecx, n
+	call takeinput
+	mov ecx, [n]
+	call convert
+	;;;;;;;;;;;;;;;;;;
+	cmp ecx, 100
+	jb startinp
+	call printerr
+	mov ecx, newline
+	call print
+	jmp bgn
+	;;;;;;;;;;;;;;;;;;
+	
+	startinp:
+	push cx
+	mov ecx, inp
+	call takeinput
+	mov ecx, [inp]
+	call convert
+	
+	;;;;;;;;;;;;;;;;;;
+	cmp ecx, 100
+	jb correct
+	call printerr
+	mov ecx, newline
+	call print
+	pop cx
+	jmp startinp
+	;;;;;;;;;;;;;;;;;;
+
+	correct:
+	mov eax, [sum]
+	add eax, ecx
+	mov dword [sum], eax
+	mov ecx, 0
+	pop cx
+	dec cx
+	cmp cx, 0
+	jne startinp 
+
+	mov ebx, 29h
+	push bx
+	mov ebx, 10
+	mov eax, [sum]
+	
+	breakdigits:
+	mov edx, 0
+	idiv bx
+	add edx, 30h
+	push dx
+	cmp eax, 0
+	jne breakdigits
+
+	call printout
+
+	startprint:
+	mov eax, 0
+	pop ax
+	cmp ax, 29h
+	je exit
+	mov byte [printdata], al
+	mov ecx, printdata
+	call print
+	jmp startprint
+	
+	exit:
+	mov ecx, newline
+	call print
+	mov eax, 1
+	int 0x80
+
+section .data
+	message db "Enter N: "
+	messagelen equ $ - message
+	msg2 db "Sum: "
+	msg2len equ $ - msg2
+	error db "Invalid input. Re-enter:"
+	errlen equ $ - error
+	n db 99
+	inp dd 99
+	newline db 0xa
+	printdata db 2
+	sum dd 0

@@ -1,0 +1,137 @@
+;;;ODD EVEN REPLACEMENT BY 0 AND 1;;;;;;
+
+
+
+section .text
+global _start
+_start:
+mov eax, 4
+mov ebx, 1
+mov ecx, msg1
+mov edx, len1
+int 80h
+
+loop_read1:
+mov eax, 3
+mov ebx, 0
+mov ecx, temp
+mov edx, 1
+int 80h
+cmp byte[temp], 10
+je print_msg
+sub byte[temp], 30h
+mov al, byte[n]
+mov bl, 10
+mul bl
+add al, byte[temp]
+mov byte[n], al
+jmp loop_read1
+
+print_msg:
+mov eax, 4
+mov ebx, 1
+mov ecx, msg2
+mov edx, len2
+int 80h
+
+mov byte[i], 0
+mov byte[num], 0
+mov ebx, array
+push ebx
+
+loop_read2:
+mov eax, 3
+mov ebx, 0
+mov ecx, temp
+mov edx, 1
+int 80h
+cmp byte[temp], 10
+je iterate1
+sub byte[temp], 30h
+mov al, byte[num]
+mov bl, 10
+mul bl
+add al, byte[temp]
+mov byte[num], al
+jmp loop_read2
+
+iterate1:
+pop ebx
+mov al, byte[num]
+mov byte[ebx], al
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je next
+mov byte[num], 0
+add ebx, 1
+push ebx
+jmp loop_read2
+
+next:
+mov byte[i], 0
+mov ebx, array
+
+traverse:
+mov al, byte[ebx]
+mov ah, 0
+mov cl, 2
+div cl
+mov byte[ebx], ah
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je print
+add ebx, 1
+jmp traverse
+
+print:
+mov byte[i], 0
+mov ebx, array
+push ebx
+
+print_each:
+pop ebx
+mov al, byte[ebx]
+push ebx
+mov byte[temp], al
+add byte[temp], 30h
+mov eax, 4
+mov ebx, 1
+mov ecx, temp
+mov edx, 1
+int 80h
+
+mov eax, 4
+mov ebx, 1
+mov ecx, space
+mov edx, 1
+int 80h
+
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je exit
+pop ebx
+add ebx, 1
+push ebx
+jmp print_each
+
+exit:
+mov eax, 1
+mov ebx, 0
+int 80h
+
+section .data
+msg1: db "Enter the value of n:",0Ah
+len1: equ $-msg1
+msg2: db "Enter n integers:",0Ah
+len2: equ $-msg2
+space: db ' '
+n: db 0
+
+section .bss
+array: resb 50
+temp: resb 1
+num: resb 1
+i: resb 1

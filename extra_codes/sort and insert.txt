@@ -1,0 +1,301 @@
+
+;;;SHORTING AND INSETING A NUMBER;;;;
+
+section .text
+global _start
+_start:
+mov eax, 4
+mov ebx, 1
+mov ecx, msg1
+mov edx, len1
+int 80h
+
+loop_read1:
+mov eax, 3
+mov ebx, 0
+mov ecx, temp
+mov edx, 1
+int 80h
+cmp byte[temp], 10
+je print_msg
+sub byte[temp], 30h
+mov al, byte[n]
+mov bl, 10
+mul bl
+add al, byte[temp]
+mov byte[n], al
+jmp loop_read1
+
+print_msg:
+mov eax, 4
+mov ebx, 1
+mov ecx, msg2
+mov edx, len2
+int 80h
+
+mov byte[i], 0
+mov byte[num], 0
+mov ebx, array
+push ebx
+
+loop_read2:
+mov eax, 3
+mov ebx, 0
+mov ecx, temp
+mov edx, 1
+int 80h
+cmp byte[temp], 10
+je iterate1
+sub byte[temp], 30h
+mov al, byte[num]
+mov bl, 10
+mul bl
+add al, byte[temp]
+mov byte[num], al
+jmp loop_read2
+
+iterate1:
+pop ebx
+mov al, byte[num]
+mov byte[ebx], al
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je next
+mov byte[num], 0
+add ebx, 1
+push ebx
+jmp loop_read2
+
+next:
+mov byte[i], 0
+mov ebx, array
+
+loop1:
+mov byte[j], 0
+mov ecx, array
+
+loop2:
+mov al, byte[ecx]
+mov dl, byte[ecx+1]
+cmp al, dl
+jng iterate2
+mov byte[ecx], dl
+mov byte[ecx+1], al
+
+iterate2:
+inc byte[j]
+mov al, byte[n]
+sub al, byte[i]
+sub al, 1
+cmp byte[j], al
+je iterate3
+add ecx, 1
+jmp loop2
+
+iterate3:
+inc byte[i]
+mov al, byte[n]
+sub al, 1
+cmp byte[i], al
+je print
+add ebx, 1
+jmp loop1
+
+print:
+mov byte[i], 0
+mov ebx, array
+push ebx
+
+print_each:
+pop ebx
+mov al, byte[ebx]
+push ebx
+mov byte[num], al
+mov byte[nod], 0
+
+sub_extract:
+cmp byte[num], 0
+je sub_print
+inc byte[nod]
+mov al, byte[num]
+mov ah, 0
+mov bl, 10
+div bl
+movzx dx, ah
+push dx
+mov byte[num], al
+jmp sub_extract
+
+sub_print:
+cmp byte[nod], 0
+je iterate4
+pop dx
+mov word[temp], dx
+add word[temp], 30h
+mov eax, 4
+mov ebx, 1
+mov ecx, temp
+mov edx, 1
+int 80h
+dec byte[nod]
+jmp sub_print
+
+iterate4:
+mov eax, 4
+mov ebx, 1
+mov ecx, space
+mov edx, 1
+int 80h
+
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je print_msg2
+pop ebx
+add ebx, 1
+push ebx
+jmp print_each
+
+print_msg2:
+mov eax, 4
+mov ebx, 1
+mov ecx, newline
+mov edx, len4
+int 80h
+
+mov eax, 4
+mov ebx, 1
+mov ecx, msg3
+mov edx, len3
+int 80h
+
+mov byte[num], 0
+
+loop_read:
+mov eax, 3
+mov ebx, 0
+mov ecx, temp
+mov edx, 1
+int 80h
+cmp byte[temp], 10
+je goto_last
+sub byte[temp], 30h
+mov al, byte[num]
+mov bl, 10
+mul bl
+add al, byte[temp]
+mov byte[num], al
+jmp loop_read
+
+goto_last:
+mov byte[i], 0
+mov ebx, array
+
+traverse:
+inc byte[i]
+mov al, byte[n]
+cmp byte[i], al
+je insert
+add ebx, 1
+jmp  traverse
+
+insert:
+mov al, byte[n]
+mov byte[i], al
+
+sub_insert:
+mov al, byte[num]
+cmp byte[ebx], al
+jl put_next
+mov al, byte[ebx]
+mov byte[ebx+1], al
+sub ebx, 1
+dec byte[i]
+cmp byte[i], 0
+jg sub_insert
+
+put_next:
+mov al, byte[num]
+mov byte[ebx+1], al
+
+print_again:
+mov byte[i], 0
+mov ebx, array
+push ebx
+
+print_each_again:
+pop ebx
+mov al, byte[ebx]
+push ebx
+mov byte[num], al
+mov byte[nod], 0
+
+sub_extract_again:
+cmp byte[num], 0
+je sub_print_again
+inc byte[nod]
+mov al, byte[num]
+mov ah, 0
+mov bl, 10
+div bl
+movzx dx, ah
+push dx
+mov byte[num], al
+jmp sub_extract_again
+
+sub_print_again:
+cmp byte[nod], 0
+je iterate5
+pop dx
+mov word[temp], dx
+add word[temp], 30h
+mov eax, 4
+mov ebx, 1
+mov ecx, temp
+mov edx, 1
+int 80h
+dec byte[nod]
+jmp sub_print_again
+
+iterate5:
+mov eax, 4
+mov ebx, 1
+mov ecx, space
+mov edx, 1
+int 80h
+
+inc byte[i]
+mov al, byte[n]
+add al, 1
+cmp byte[i], al
+je exit
+pop ebx
+add ebx, 1
+push ebx
+jmp print_each_again
+
+exit:
+mov eax, 1
+mov ebx, 0
+int 80h
+
+section .data
+msg1: db "Enter the value of n",0Ah
+len1: equ $-msg1
+msg2: db "Enter n integers:",0Ah
+len2: equ $-msg2
+msg3: db "Enter element to be inserted:", 0Ah
+len3: equ $-msg3
+newline: db 0Ah
+len4: equ $-newline
+space: db ' '
+n: db 0
+
+section .bss
+array: resb 50
+temp: resb 1
+i: resb 1
+j: resb 1
+num: resb 1
+nod: resb 1
